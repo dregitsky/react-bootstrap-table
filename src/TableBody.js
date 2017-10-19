@@ -237,9 +237,14 @@ class TableBody extends Component {
 
     return (
       <div ref='container'
+        onScroll={ this.props.onScroll }
         className={ classSet('react-bs-container-body', this.props.bodyContainerClass) }
         style={ this.props.style }>
-        <table className={ tableClasses }>
+        <table className={ tableClasses }
+          style={ {
+            marginTop: this.props.topMargin || 0,
+            marginBottom: this.props.btmMargin || 0
+          } }>
           { React.cloneElement(tableHeader, { ref: 'header' }) }
           <tbody ref='tbody'>
             { tableRows }

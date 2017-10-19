@@ -21,7 +21,6 @@ export class TableDataStore {
 
   setProps(props) {
     this.keyField = props.keyField;
-    this.enablePagination = props.isPagination;
     this.colInfos = props.colInfos;
     this.remote = props.remote;
     this.multiColumnSearch = props.multiColumnSearch;
@@ -39,6 +38,10 @@ export class TableDataStore {
     this.sortList = [];
     this.pageObj = {};
     this.selected = [];
+  }
+
+  get rows() {
+    return this.filteredData || this.data;
   }
 
   isSearching() {
@@ -189,10 +192,16 @@ export class TableDataStore {
     return this;
   }
 
+  slice(start, end) {
+    this.pageObj.end = end;
+    this.pageObj.start = start;
+    return this;
+  }
+
   edit(newVal, rowIndex, fieldName) {
     const currentDisplayData = this.getCurrentDisplayData();
     let rowKeyCache;
-    if (!this.enablePagination) {
+    if (this.pageObj.start == null) {
       currentDisplayData[rowIndex][fieldName] = newVal;
       rowKeyCache = currentDisplayData[rowIndex][this.keyField];
     } else {
@@ -699,7 +708,7 @@ export class TableDataStore {
     const remote = typeof this.remote === 'function' ?
       (this.remote(Const.REMOTE))[Const.REMOTE_PAGE] : this.remote;
 
-    if (remote || !this.enablePagination) {
+    if (remote || this.pageObj.start == null) {
       return _data;
     } else {
       const result = [];

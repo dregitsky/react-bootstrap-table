@@ -44,19 +44,28 @@ class BootstrapTable extends Component {
     this._adjustHeaderWidth = this._adjustHeaderWidth.bind(this);
     this._adjustHeight = this._adjustHeight.bind(this);
     this._adjustTable = this._adjustTable.bind(this);
+    this._onScroll = this._onScroll.bind(this);
+
+    const ht = this.props.maxTableHeight;
+    const rowHeight = this.props.rowHeight || 37;
+    const size = this.store.rows.length;
+    const end = ht ? Math.min(Math.ceil(ht / rowHeight), size) : size;
 
     this.state = {
-      data: this.getTableData(),
+      data: this.getTableData(0, end),
       currPage: currPage,
       expanding: this.props.options.expanding || [],
       sizePerPage: this.props.options.sizePerPage || Const.SIZE_PER_PAGE_LIST[0],
       selectedRowKeys: this.store.getSelectedRowKeys(),
       reset: false,
       x: this.props.keyBoardNav ? 0 : -1,
-      y: this.props.keyBoardNav ? 0 : -1
+      y: this.props.keyBoardNav ? 0 : -1,
+      rowHeight,
+      startIndex: 0,
+      endIndex: end
     };
   }
-
+l
   initTable(props) {
     // If columns changed, clean removed columns that had filters
     if (props.children !== this.props.children && this.filter) {
@@ -124,9 +133,24 @@ class BootstrapTable extends Component {
     });
   }
 
-  getTableData() {
+  _onScroll() {
+    if (this.props.options.scrollRendering) {
+      const height = this.refs.body.refs.container.clientHeight;
+      const top = this.refs.body.refs.container.scrollTop;
+      const startIndex = Math.max(Math.floor(top / this.state.rowHeight), 0);
+      const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight), this.store.rows.length);
+      this.setState({
+        data: this.getTableData(startIndex, endIndex),
+        startIndex,
+        endIndex
+      });
+    }
+  }
+
+  getTableData(start, end) {
     let result = [];
     const { options, pagination } = this.props;
+    const { scrollRendering } = this.props.options;
     const sortName = options.defaultSortName || options.sortName;
     const sortOrder = options.defaultSortOrder || options.sortOrder;
     const searchText = options.defaultSearch;
@@ -153,6 +177,8 @@ class BootstrapTable extends Component {
         page = options.page || 1;
       }
       result = this.store.page(page, sizePerPage).get();
+    } else if (scrollRendering) {
+      result = this.store.slice(start || 0, end || 0).get();
     } else {
       result = this.store.get();
     }
@@ -233,7 +259,7 @@ class BootstrapTable extends Component {
     this.refs.body.setState({ currEditCell: null });
     this.setState(() => {
       return {
-        data: this.getTableData(),
+        data: this.getTableData(this.state.startIndex, this.state.endIndex),
         currPage: Util.getFirstPage(pageStartIndex),
         expanding: [],
         sizePerPage: Const.SIZE_PER_PAGE_LIST[0],
@@ -244,6 +270,7 @@ class BootstrapTable extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    nextProps.options.scrollRendering = true;
     this.initTable(nextProps);
     const { options, selectRow } = nextProps;
     let { replace } = nextProps;
@@ -473,7 +500,7 @@ class BootstrapTable extends Component {
           <TableBody ref='body'
             bodyContainerClass={ this.props.bodyContainerClass }
             tableBodyClass={ this.props.tableBodyClass }
-            style={ { ...style, ...this.props.bodyStyle } }
+            style={ { ...style, ...this.props.bodyStyle, maxHeight: this.props.options.maxTableHeight } }
             data={ this.state.data }
             version={ this.props.version }
             expandComponent={ this.props.expandComponent }
@@ -510,7 +537,10 @@ class BootstrapTable extends Component {
             x={ this.state.x }
             y={ this.state.y }
             withoutTabIndex={ this.props.withoutTabIndex }
-            onEditCell={ this.handleEditCell } />
+            onEditCell={ this.handleEditCell }
+            onScroll={ this._onScroll }
+            topMargin={ this.props.options.scrollRendering ? Math.max(0, this.state.startIndex) * this.state.rowHeight : 0 }
+            btmMargin={ this.props.options.scrollRendering ? Math.max(0, this.store.rows.length - this.state.endIndex) * this.state.rowHeight : 0 }/>
             {
               tableFooter
             }
@@ -1691,7 +1721,10 @@ BootstrapTable.propTypes = {
     beforeShowError: PropTypes.func,
     printToolBar: PropTypes.bool,
     insertFailIndicator: PropTypes.string,
-    noAutoBOM: PropTypes.bool
+    noAutoBOM: PropTypes.bool,
+    maxTableHeight: PropTypes.number,
+    scrollRendering: PropTypes.bool,
+    rowHeight: PropTypes.number
   }),
   fetchInfo: PropTypes.shape({
     dataTotalSize: PropTypes.number
@@ -1858,7 +1891,10 @@ BootstrapTable.defaultProps = {
     beforeShowError: undefined,
     printToolBar: true,
     insertFailIndicator: Const.INSERT_FAIL_INDICATOR,
-    noAutoBOM: true
+    noAutoBOM: true,
+    maxTableHeight: undefined,
+    scrollRendering: false,
+    rowHeight: 37
   },
   fetchInfo: {
     dataTotalSize: 0
