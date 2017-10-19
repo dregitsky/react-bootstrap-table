@@ -137,8 +137,8 @@ l
     if (this.props.options.scrollRendering) {
       const height = this.refs.body.refs.container.clientHeight;
       const top = this.refs.body.refs.container.scrollTop;
-      const startIndex = Math.max(Math.floor(top / this.state.rowHeight), 0);
-      const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight), this.store.rows.length);
+      const startIndex = Math.max(Math.floor(top / this.state.rowHeight) - 10, 0);
+      const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + 10, this.store.rows.length);
       this.setState({
         data: this.getTableData(startIndex, endIndex),
         startIndex,
