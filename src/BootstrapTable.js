@@ -845,13 +845,16 @@ l
       result = this.store.get();
     }
     this.setState(() => {
-      return {
+      const newState = {
         data: result,
-        reset: false,
-        currPage: Util.getFirstPage(pageStartIndex)
+        reset: false
       };
+      if (this.props.pagination) {
+        newState.currPage = Util.getFirstPage(pageStartIndex);
+      }
+      return newState;
     });
-  }
+  };
 
   handleSelectRow = (row, isSelected, e, rowIndex) => {
     let result = true;
@@ -1101,10 +1104,14 @@ l
 
     this.setState(() => {
       const newState = {
-        currPage: Util.getFirstPage(pageStartIndex),
         reset: false
       };
-      if (filter) newState.expanding = [];
+      if (this.props.pagination) {
+        newState.currPage = Util.getFirstPage(pageStartIndex);
+      }
+      if (filter) {
+        newState.expanding = [];
+      }
       return newState;
     });
 
@@ -1194,9 +1201,11 @@ l
 
     this.setState(() => {
       const newState = {
-        currPage: Util.getFirstPage(pageStartIndex),
         reset: false
       };
+      if (this.props.pagination) {
+        newState.currPage = Util.getFirstPage(pageStartIndex);
+      }
       if (search) newState.expanding = [];
       return newState;
     });
