@@ -51,7 +51,7 @@ class BootstrapTable extends Component {
     if (this.props.options.scrollRendering) {
       const ht = this.props.options.maxTableHeight;
       const size = this.store.rows.length;
-      end = ht ? Math.min(Math.ceil(ht / rowHeight), size) : size;
+      end = ht ? Math.min(Math.ceil(ht / rowHeight) + this.props.options.scrollBuffer || 0, size) : size;
     }
 
     this.state = {
@@ -140,8 +140,9 @@ l
     if (this.props.options.scrollRendering) {
       const height = this.refs.body.refs.container.clientHeight;
       const top = this.refs.body.refs.container.scrollTop;
-      const startIndex = Math.max(Math.floor(top / this.state.rowHeight) - 10, 0);
-      const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + 10, this.store.rows.length);
+      const buffer = this.props.options.scrollBuffer || 0;
+      const startIndex = Math.max(Math.floor(top / this.state.rowHeight) - buffer, 0);
+      const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + buffer, this.store.rows.length);
       this.setState({
         data: this.getDisplayData(startIndex, endIndex),
         startIndex,
@@ -1743,6 +1744,7 @@ BootstrapTable.propTypes = {
     noAutoBOM: PropTypes.bool,
     maxTableHeight: PropTypes.number,
     scrollRendering: PropTypes.bool,
+    scrollBuffer: PropTypes.number,
     rowHeight: PropTypes.number
   }),
   fetchInfo: PropTypes.shape({
@@ -1913,6 +1915,7 @@ BootstrapTable.defaultProps = {
     noAutoBOM: true,
     maxTableHeight: undefined,
     scrollRendering: false,
+    scrollBuffer: 0,
     rowHeight: 37
   },
   fetchInfo: {
