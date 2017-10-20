@@ -332,15 +332,22 @@ class BootstrapTable extends Component {
         } else if (sortList.length > 0) {
           this.store.sort();
         }
-        const data = this.store.page(page, sizePerPage).get();
-        this.setState(() => {
-          return {
+
+        let newState = {
+          reset: false
+        };
+        if (nextProps.pagination) {
+          const data = this.store.page(page, sizePerPage).get();
+          newState = {
+            ...newState,
             data,
             currPage: page,
-            sizePerPage,
-            reset: false
+            sizePerPage
           };
-        });
+        } else {
+          newState.data = this.store.get();
+        }
+        this.setState(newState);
 
         if (this.store.isSearching && options.afterSearch) {
           options.afterSearch(this.store.searchText, this.store.getDataIgnoringPagination());
