@@ -1456,78 +1456,80 @@ l
   }
 
   _adjustHeaderWidth() {
-    const header = this.refs.header.getHeaderColGrouop();
-    const tbody = this.refs.body.refs.tbody;
-    const bodyHeader = this.refs.body.getHeaderColGrouop();
-    const firstRow = tbody.childNodes[0];
-    const isScroll = tbody.parentNode.getBoundingClientRect().height >
-      tbody.parentNode.parentNode.getBoundingClientRect().height;
-
-    const scrollBarWidth = isScroll ? Util.getScrollBarWidth() : 0;
-    if (firstRow && this.store.getDataNum()) {
-      if (isScroll || this.isVerticalScroll !== isScroll) {
-        const cells = firstRow.childNodes;
-        for (let i = 0; i < cells.length; i++) {
-          const cell = cells[i];
-          const computedStyle = window.getComputedStyle(cell);
-          let width = parseFloat(computedStyle.width.replace('px', ''));
-          if (this.isIE) {
-            const paddingLeftWidth = parseFloat(computedStyle.paddingLeft.replace('px', ''));
-            const paddingRightWidth = parseFloat(computedStyle.paddingRight.replace('px', ''));
-            const borderRightWidth = parseFloat(computedStyle.borderRightWidth.replace('px', ''));
-            const borderLeftWidth = parseFloat(computedStyle.borderLeftWidth.replace('px', ''));
-            width = width + paddingLeftWidth + paddingRightWidth + borderRightWidth + borderLeftWidth;
-          }
-          const lastPadding = (cells.length - 1 === i ? scrollBarWidth : 0);
-          if (width <= 0) {
-            width = 120;
-            cell.width = width + lastPadding + 'px';
-          }
-          const result = width + lastPadding + 'px';
-          header[i].style.width = result;
-          header[i].style.minWidth = result;
-          if (cells.length - 1 === i) {
-            bodyHeader[i].style.width = width + 'px';
-            bodyHeader[i].style.minWidth = width + 'px';
-          } else {
-            bodyHeader[i].style.width = result;
-            bodyHeader[i].style.minWidth = result;
-          }
-        }
-      }
-    } else {
-      for (const i in bodyHeader) {
-        if (bodyHeader.hasOwnProperty(i)) {
-          const child = bodyHeader[i];
-          if (child.style) {
-            if (child.style.width) {
-              header[i].style.width = child.style.width;
-            }
-            if (child.style.minWidth) {
-              header[i].style.minWidth = child.style.minWidth;
-            }
-          }
-        }
-      }
-    }
-    this.isVerticalScroll = isScroll;
+    return;
+    // const header = this.refs.header.getHeaderColGrouop();
+    // const tbody = this.refs.body.refs.tbody;
+    // const bodyHeader = this.refs.body.getHeaderColGrouop();
+    // const firstRow = tbody.childNodes[0];
+    // const isScroll = tbody.parentNode.getBoundingClientRect().height >
+    //   tbody.parentNode.parentNode.getBoundingClientRect().height;
+    //
+    // const scrollBarWidth = isScroll ? Util.getScrollBarWidth() : 0;
+    // if (firstRow && this.store.getDataNum()) {
+    //   if (isScroll || this.isVerticalScroll !== isScroll) {
+    //     const cells = firstRow.childNodes;
+    //     for (let i = 0; i < cells.length; i++) {
+    //       const cell = cells[i];
+    //       const computedStyle = window.getComputedStyle(cell);
+    //       let width = parseFloat(computedStyle.width.replace('px', ''));
+    //       if (this.isIE) {
+    //         const paddingLeftWidth = parseFloat(computedStyle.paddingLeft.replace('px', ''));
+    //         const paddingRightWidth = parseFloat(computedStyle.paddingRight.replace('px', ''));
+    //         const borderRightWidth = parseFloat(computedStyle.borderRightWidth.replace('px', ''));
+    //         const borderLeftWidth = parseFloat(computedStyle.borderLeftWidth.replace('px', ''));
+    //         width = width + paddingLeftWidth + paddingRightWidth + borderRightWidth + borderLeftWidth;
+    //       }
+    //       const lastPadding = (cells.length - 1 === i ? scrollBarWidth : 0);
+    //       if (width <= 0) {
+    //         width = 120;
+    //         cell.width = width + lastPadding + 'px';
+    //       }
+    //       const result = width + lastPadding + 'px';
+    //       header[i].style.width = result;
+    //       header[i].style.minWidth = result;
+    //       if (cells.length - 1 === i) {
+    //         bodyHeader[i].style.width = width + 'px';
+    //         bodyHeader[i].style.minWidth = width + 'px';
+    //       } else {
+    //         bodyHeader[i].style.width = result;
+    //         bodyHeader[i].style.minWidth = result;
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   for (const i in bodyHeader) {
+    //     if (bodyHeader.hasOwnProperty(i)) {
+    //       const child = bodyHeader[i];
+    //       if (child.style) {
+    //         if (child.style.width) {
+    //           header[i].style.width = child.style.width;
+    //         }
+    //         if (child.style.minWidth) {
+    //           header[i].style.minWidth = child.style.minWidth;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // this.isVerticalScroll = isScroll;
   }
 
   _adjustHeight() {
-    const { height } = this.props;
-    let { maxHeight } = this.props;
-    if ((typeof height === 'number' && !isNaN(height)) || height.indexOf('%') === -1) {
-      this.refs.body.refs.container.style.height =
-        parseFloat(height, 10) - this.refs.header.refs.container.offsetHeight + 'px';
-    }
-    if (maxHeight) {
-      maxHeight = typeof maxHeight === 'number' ?
-        maxHeight :
-        parseInt(maxHeight.replace('px', ''), 10);
-
-      this.refs.body.refs.container.style.maxHeight =
-        maxHeight - this.refs.header.refs.container.offsetHeight + 'px';
-    }
+    return;
+    // const { height } = this.props;
+    // let { maxHeight } = this.props;
+    // if ((typeof height === 'number' && !isNaN(height)) || height.indexOf('%') === -1) {
+    //   this.refs.body.refs.container.style.height =
+    //     parseFloat(height, 10) - this.refs.header.refs.container.offsetHeight + 'px';
+    // }
+    // if (maxHeight) {
+    //   maxHeight = typeof maxHeight === 'number' ?
+    //     maxHeight :
+    //     parseInt(maxHeight.replace('px', ''), 10);
+    //
+    //   this.refs.body.refs.container.style.maxHeight =
+    //     maxHeight - this.refs.header.refs.container.offsetHeight + 'px';
+    // }
   }
 
   _handleAfterAddingRow(newObj, atTheBeginning) {
