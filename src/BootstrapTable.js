@@ -279,7 +279,6 @@ l
   }
 
   componentWillReceiveProps(nextProps) {
-    nextProps.options.scrollRendering = true;
     this.initTable(nextProps);
     const { options, selectRow } = nextProps;
     let { replace } = nextProps;
