@@ -580,16 +580,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_onScroll',
 	    value: function _onScroll() {
+	      var _this3 = this;
+
 	      if (this.props.options.scrollRendering) {
 	        var height = this.refs.body.refs.container.clientHeight;
 	        var top = this.refs.body.refs.container.scrollTop;
 	        var buffer = this.props.options.scrollBuffer || 0;
 	        var startIndex = Math.max(Math.floor(top / this.state.rowHeight) - buffer, 0);
 	        var endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + buffer, this.store.rows.length);
-	        this.setState({
-	          data: this.getDisplayData(startIndex, endIndex),
-	          startIndex: startIndex,
-	          endIndex: endIndex
+	        window.requestAnimationFrame(function () {
+	          _this3.setState({
+	            data: _this3.getDisplayData(startIndex, endIndex),
+	            startIndex: startIndex,
+	            endIndex: endIndex
+	          });
 	        });
 	      }
 	    }
@@ -646,7 +650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getColumnsDescription',
 	    value: function getColumnsDescription(_ref) {
-	      var _this3 = this;
+	      var _this4 = this;
 
 	      var children = _ref.children;
 
@@ -670,7 +674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var rowIndex = column.props.row ? Number(column.props.row) : 0;
 	        var rowSpan = column.props.rowSpan ? Number(column.props.rowSpan) : 1;
 	        if (rowSpan + rowIndex === rowCount + 1) {
-	          var columnDescription = _this3.getColumnDescription(column);
+	          var columnDescription = _this4.getColumnDescription(column);
 
 	          columnDescription.index = i;
 	          return columnDescription;
@@ -717,7 +721,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'reset',
 	    value: function reset() {
-	      var _this4 = this;
+	      var _this5 = this;
 
 	      var pageStartIndex = this.props.options.pageStartIndex;
 
@@ -725,7 +729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.refs.body.setState({ currEditCell: null });
 	      this.setState(function () {
 	        return {
-	          data: _this4.getTableData(_this4.state.startIndex, _this4.state.endIndex),
+	          data: _this5.getTableData(_this5.state.startIndex, _this5.state.endIndex),
 	          currPage: _util2.default.getFirstPage(pageStartIndex),
 	          expanding: [],
 	          sizePerPage: _Const2.default.SIZE_PER_PAGE_LIST[0],
@@ -793,15 +797,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	          } else if (sortList.length > 0) {
 	            this.store.sort();
 	          }
-	          var _data = this.store.page(page, sizePerPage).get();
-	          this.setState(function () {
-	            return {
+
+	          var _newState = {
+	            reset: false
+	          };
+	          if (nextProps.pagination) {
+	            var _data = this.store.page(page, sizePerPage).get();
+	            _newState = _extends({}, _newState, {
 	              data: _data,
 	              currPage: page,
-	              sizePerPage: sizePerPage,
-	              reset: false
-	            };
-	          });
+	              sizePerPage: sizePerPage
+	            });
+	          } else {
+	            _newState.data = this.store.get();
+	          }
+	          this.setState(_newState);
 
 	          if (this.store.isSearching && options.afterSearch) {
 	            options.afterSearch(this.store.searchText, this.store.getDataIgnoringPagination());
@@ -1135,7 +1145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleExpandRow__REACT_HOT_LOADER__',
 	    value: function __handleExpandRow__REACT_HOT_LOADER__(expanding, rowKey, isRowExpanding) {
-	      var _this5 = this;
+	      var _this6 = this;
 
 	      var onExpand = this.props.options.onExpand;
 
@@ -1145,7 +1155,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState(function () {
 	        return { expanding: expanding, reset: false };
 	      }, function () {
-	        _this5._adjustHeaderWidth();
+	        _this6._adjustHeaderWidth();
 	      });
 	    }
 	  }, {
@@ -1386,7 +1396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleShowOnlySelected__REACT_HOT_LOADER__',
 	    value: function __handleShowOnlySelected__REACT_HOT_LOADER__() {
-	      var _this6 = this;
+	      var _this7 = this;
 
 	      this.store.ignoreNonSelected();
 	      var pageStartIndex = this.props.options.pageStartIndex;
@@ -1402,7 +1412,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          data: result,
 	          reset: false
 	        };
-	        if (_this6.props.pagination) {
+	        if (_this7.props.pagination) {
 	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
 	        }
 	        return newState;
@@ -1445,7 +1455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleEditCell__REACT_HOT_LOADER__',
 	    value: function __handleEditCell__REACT_HOT_LOADER__(newVal, rowIndex, colIndex) {
-	      var _this7 = this;
+	      var _this8 = this;
 
 	      var beforeSaveCell = this.props.cellEdit.beforeSaveCell;
 
@@ -1453,9 +1463,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var fieldName = columns[colIndex].name;
 
 	      var invalid = function invalid() {
-	        _this7.setState(function () {
+	        _this8.setState(function () {
 	          return {
-	            data: _this7.store.get(),
+	            data: _this8.store.get(),
 	            reset: false
 	          };
 	        });
@@ -1464,9 +1474,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (beforeSaveCell) {
 	        var beforeSaveCellCB = function beforeSaveCellCB(result) {
-	          _this7.refs.body.cancelEditCell();
+	          _this8.refs.body.cancelEditCell();
 	          if (result || result === undefined) {
-	            _this7.editCell(newVal, rowIndex, colIndex);
+	            _this8.editCell(newVal, rowIndex, colIndex);
 	          } else {
 	            invalid();
 	          }
@@ -1525,7 +1535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleAddRow__REACT_HOT_LOADER__',
 	    value: function __handleAddRow__REACT_HOT_LOADER__(newObj) {
-	      var _this8 = this;
+	      var _this9 = this;
 
 	      var isAsync = false;
 	      var onAddRow = this.props.options.onAddRow;
@@ -1533,7 +1543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var afterHandleAddRow = function afterHandleAddRow(errMsg) {
 	        if (isAsync) {
-	          _this8.refs.toolbar.afterHandleSaveBtnClick(errMsg);
+	          _this9.refs.toolbar.afterHandleSaveBtnClick(errMsg);
 	        } else {
 	          return errMsg;
 	        }
@@ -1541,19 +1551,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var afterAddRowCB = function afterAddRowCB(errMsg) {
 	        if (typeof errMsg !== 'undefined' && errMsg !== '') return afterHandleAddRow(errMsg);
-	        if (_this8.allowRemote(_Const2.default.REMOTE_INSERT_ROW)) {
-	          if (_this8.props.options.afterInsertRow) {
-	            _this8.props.options.afterInsertRow(newObj);
+	        if (_this9.allowRemote(_Const2.default.REMOTE_INSERT_ROW)) {
+	          if (_this9.props.options.afterInsertRow) {
+	            _this9.props.options.afterInsertRow(newObj);
 	          }
 	          return afterHandleAddRow();
 	        }
 
 	        try {
-	          _this8.store.add(newObj);
+	          _this9.store.add(newObj);
 	        } catch (e) {
 	          return afterHandleAddRow(e.message);
 	        }
-	        _this8._handleAfterAddingRow(newObj, false);
+	        _this9._handleAfterAddingRow(newObj, false);
 	        return afterHandleAddRow();
 	      };
 
@@ -1607,14 +1617,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleDropRow__REACT_HOT_LOADER__',
 	    value: function __handleDropRow__REACT_HOT_LOADER__(rowKeys) {
-	      var _this9 = this;
+	      var _this10 = this;
 
 	      var dropRowKeys = rowKeys ? rowKeys : this.store.getSelectedRowKeys();
 	      // add confirm before the delete action if that option is set.
 	      if (dropRowKeys && dropRowKeys.length > 0) {
 	        if (this.props.options.handleConfirmDeleteRow) {
 	          this.props.options.handleConfirmDeleteRow(function () {
-	            _this9.deleteRow(dropRowKeys);
+	            _this10.deleteRow(dropRowKeys);
 	          }, dropRowKeys);
 	        } else if (confirm('Are you sure you want to delete?')) {
 	          this.deleteRow(dropRowKeys);
@@ -1624,7 +1634,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'deleteRow',
 	    value: function deleteRow(dropRowKeys) {
-	      var _this10 = this;
+	      var _this11 = this;
 
 	      var dropRow = this.store.getRowByKey(dropRowKeys);
 	      var _props$options2 = this.props.options,
@@ -1661,7 +1671,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.setState(function () {
 	          return {
 	            data: result,
-	            selectedRowKeys: _this10.store.getSelectedRowKeys(),
+	            selectedRowKeys: _this11.store.getSelectedRowKeys(),
 	            currPage: currPage,
 	            reset: false
 	          };
@@ -1672,7 +1682,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return {
 	            data: result,
 	            reset: false,
-	            selectedRowKeys: _this10.store.getSelectedRowKeys()
+	            selectedRowKeys: _this11.store.getSelectedRowKeys()
 	          };
 	        });
 	      }
@@ -1683,7 +1693,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleFilterData__REACT_HOT_LOADER__',
 	    value: function __handleFilterData__REACT_HOT_LOADER__(filterObj) {
-	      var _this11 = this;
+	      var _this12 = this;
 
 	      var _props4 = this.props,
 	          filter = _props4.autoCollapse.filter,
@@ -1700,7 +1710,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var newState = {
 	          reset: false
 	        };
-	        if (_this11.props.pagination) {
+	        if (_this12.props.pagination) {
 	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
 	        }
 	        if (filter) {
@@ -1788,7 +1798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleSearch__REACT_HOT_LOADER__',
 	    value: function __handleSearch__REACT_HOT_LOADER__(searchText) {
-	      var _this12 = this;
+	      var _this13 = this;
 
 	      // Set search field if this function being called outside
 	      // but it's not necessary if calling fron inside.
@@ -1809,7 +1819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var newState = {
 	          reset: false
 	        };
-	        if (_this12.props.pagination) {
+	        if (_this13.props.pagination) {
 	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
 	        }
 	        if (search) newState.expanding = [];
