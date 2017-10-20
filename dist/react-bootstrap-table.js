@@ -363,10 +363,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _this._adjustTable = _this._adjustTable.bind(_this);
 	    _this._onScroll = _this._onScroll.bind(_this);
 
-	    var ht = _this.props.maxTableHeight;
-	    var rowHeight = _this.props.rowHeight || 37;
-	    var size = _this.store.rows.length;
-	    var end = ht ? Math.min(Math.ceil(ht / rowHeight), size) : size;
+	    var end = void 0;
+	    var rowHeight = _this.props.options.rowHeight || 37;
+	    if (_this.props.options.scrollRendering) {
+	      var ht = _this.props.options.maxTableHeight;
+	      var size = _this.store.rows.length;
+	      end = ht ? Math.min(Math.ceil(ht / rowHeight) + _this.props.options.scrollBuffer || 0, size) : size;
+	    }
 
 	    _this.state = {
 	      data: _this.getTableData(0, end),
@@ -580,10 +583,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (this.props.options.scrollRendering) {
 	        var height = this.refs.body.refs.container.clientHeight;
 	        var top = this.refs.body.refs.container.scrollTop;
-	        var startIndex = Math.max(Math.floor(top / this.state.rowHeight), 0);
-	        var endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight), this.store.rows.length);
+	        var buffer = this.props.options.scrollBuffer || 0;
+	        var startIndex = Math.max(Math.floor(top / this.state.rowHeight) - buffer, 0);
+	        var endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + buffer, this.store.rows.length);
 	        this.setState({
-	          data: this.getTableData(startIndex, endIndex),
+	          data: this.getDisplayData(startIndex, endIndex),
 	          startIndex: startIndex,
 	          endIndex: endIndex
 	        });
@@ -592,11 +596,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'getTableData',
 	    value: function getTableData(start, end) {
-	      var result = [];
-	      var _props = this.props,
-	          options = _props.options,
-	          pagination = _props.pagination;
-	      var scrollRendering = this.props.options.scrollRendering;
+	      var options = this.props.options;
 
 	      var sortName = options.defaultSortName || options.sortName;
 	      var sortOrder = options.defaultSortOrder || options.sortOrder;
@@ -613,6 +613,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.store.search(searchText);
 	      }
 
+	      return this.getDisplayData(start, end);
+	    }
+	  }, {
+	    key: 'getDisplayData',
+	    value: function getDisplayData(start, end) {
+	      var result = [];
+	      var _props = this.props,
+	          options = _props.options,
+	          pagination = _props.pagination;
+	      var scrollRendering = this.props.options.scrollRendering;
+
+
 	      if (pagination) {
 	        var page = void 0;
 	        var sizePerPage = void 0;
@@ -625,7 +637,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        result = this.store.page(page, sizePerPage).get();
 	      } else if (scrollRendering) {
-	        result = this.store.slice(start || 0, end || 0).get();
+	        result = this.store.slice(start || 0, end || this.store.data.length).get();
 	      } else {
 	        result = this.store.get();
 	      }
@@ -725,7 +737,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(nextProps) {
-	      nextProps.options.scrollRendering = true;
 	      this.initTable(nextProps);
 	      var options = nextProps.options,
 	          selectRow = nextProps.selectRow;
@@ -1375,6 +1386,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleShowOnlySelected__REACT_HOT_LOADER__',
 	    value: function __handleShowOnlySelected__REACT_HOT_LOADER__() {
+	      var _this6 = this;
+
 	      this.store.ignoreNonSelected();
 	      var pageStartIndex = this.props.options.pageStartIndex;
 
@@ -1385,11 +1398,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        result = this.store.get();
 	      }
 	      this.setState(function () {
-	        return {
+	        var newState = {
 	          data: result,
-	          reset: false,
-	          currPage: _util2.default.getFirstPage(pageStartIndex)
+	          reset: false
 	        };
+	        if (_this6.props.pagination) {
+	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
+	        }
+	        return newState;
 	      });
 	    }
 	  }, {
@@ -1429,7 +1445,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleEditCell__REACT_HOT_LOADER__',
 	    value: function __handleEditCell__REACT_HOT_LOADER__(newVal, rowIndex, colIndex) {
-	      var _this6 = this;
+	      var _this7 = this;
 
 	      var beforeSaveCell = this.props.cellEdit.beforeSaveCell;
 
@@ -1437,9 +1453,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var fieldName = columns[colIndex].name;
 
 	      var invalid = function invalid() {
-	        _this6.setState(function () {
+	        _this7.setState(function () {
 	          return {
-	            data: _this6.store.get(),
+	            data: _this7.store.get(),
 	            reset: false
 	          };
 	        });
@@ -1448,9 +1464,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      if (beforeSaveCell) {
 	        var beforeSaveCellCB = function beforeSaveCellCB(result) {
-	          _this6.refs.body.cancelEditCell();
+	          _this7.refs.body.cancelEditCell();
 	          if (result || result === undefined) {
-	            _this6.editCell(newVal, rowIndex, colIndex);
+	            _this7.editCell(newVal, rowIndex, colIndex);
 	          } else {
 	            invalid();
 	          }
@@ -1509,7 +1525,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleAddRow__REACT_HOT_LOADER__',
 	    value: function __handleAddRow__REACT_HOT_LOADER__(newObj) {
-	      var _this7 = this;
+	      var _this8 = this;
 
 	      var isAsync = false;
 	      var onAddRow = this.props.options.onAddRow;
@@ -1517,7 +1533,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var afterHandleAddRow = function afterHandleAddRow(errMsg) {
 	        if (isAsync) {
-	          _this7.refs.toolbar.afterHandleSaveBtnClick(errMsg);
+	          _this8.refs.toolbar.afterHandleSaveBtnClick(errMsg);
 	        } else {
 	          return errMsg;
 	        }
@@ -1525,19 +1541,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var afterAddRowCB = function afterAddRowCB(errMsg) {
 	        if (typeof errMsg !== 'undefined' && errMsg !== '') return afterHandleAddRow(errMsg);
-	        if (_this7.allowRemote(_Const2.default.REMOTE_INSERT_ROW)) {
-	          if (_this7.props.options.afterInsertRow) {
-	            _this7.props.options.afterInsertRow(newObj);
+	        if (_this8.allowRemote(_Const2.default.REMOTE_INSERT_ROW)) {
+	          if (_this8.props.options.afterInsertRow) {
+	            _this8.props.options.afterInsertRow(newObj);
 	          }
 	          return afterHandleAddRow();
 	        }
 
 	        try {
-	          _this7.store.add(newObj);
+	          _this8.store.add(newObj);
 	        } catch (e) {
 	          return afterHandleAddRow(e.message);
 	        }
-	        _this7._handleAfterAddingRow(newObj, false);
+	        _this8._handleAfterAddingRow(newObj, false);
 	        return afterHandleAddRow();
 	      };
 
@@ -1591,14 +1607,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleDropRow__REACT_HOT_LOADER__',
 	    value: function __handleDropRow__REACT_HOT_LOADER__(rowKeys) {
-	      var _this8 = this;
+	      var _this9 = this;
 
 	      var dropRowKeys = rowKeys ? rowKeys : this.store.getSelectedRowKeys();
 	      // add confirm before the delete action if that option is set.
 	      if (dropRowKeys && dropRowKeys.length > 0) {
 	        if (this.props.options.handleConfirmDeleteRow) {
 	          this.props.options.handleConfirmDeleteRow(function () {
-	            _this8.deleteRow(dropRowKeys);
+	            _this9.deleteRow(dropRowKeys);
 	          }, dropRowKeys);
 	        } else if (confirm('Are you sure you want to delete?')) {
 	          this.deleteRow(dropRowKeys);
@@ -1608,7 +1624,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: 'deleteRow',
 	    value: function deleteRow(dropRowKeys) {
-	      var _this9 = this;
+	      var _this10 = this;
 
 	      var dropRow = this.store.getRowByKey(dropRowKeys);
 	      var _props$options2 = this.props.options,
@@ -1645,7 +1661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.setState(function () {
 	          return {
 	            data: result,
-	            selectedRowKeys: _this9.store.getSelectedRowKeys(),
+	            selectedRowKeys: _this10.store.getSelectedRowKeys(),
 	            currPage: currPage,
 	            reset: false
 	          };
@@ -1656,7 +1672,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return {
 	            data: result,
 	            reset: false,
-	            selectedRowKeys: _this9.store.getSelectedRowKeys()
+	            selectedRowKeys: _this10.store.getSelectedRowKeys()
 	          };
 	        });
 	      }
@@ -1667,6 +1683,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleFilterData__REACT_HOT_LOADER__',
 	    value: function __handleFilterData__REACT_HOT_LOADER__(filterObj) {
+	      var _this11 = this;
+
 	      var _props4 = this.props,
 	          filter = _props4.autoCollapse.filter,
 	          options = _props4.options;
@@ -1680,10 +1698,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      this.setState(function () {
 	        var newState = {
-	          currPage: _util2.default.getFirstPage(pageStartIndex),
 	          reset: false
 	        };
-	        if (filter) newState.expanding = [];
+	        if (_this11.props.pagination) {
+	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
+	        }
+	        if (filter) {
+	          newState.expanding = [];
+	        }
 	        return newState;
 	      });
 
@@ -1766,6 +1788,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '__handleSearch__REACT_HOT_LOADER__',
 	    value: function __handleSearch__REACT_HOT_LOADER__(searchText) {
+	      var _this12 = this;
+
 	      // Set search field if this function being called outside
 	      // but it's not necessary if calling fron inside.
 	      if (this.refs.toolbar) {
@@ -1783,9 +1807,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      this.setState(function () {
 	        var newState = {
-	          currPage: _util2.default.getFirstPage(pageStartIndex),
 	          reset: false
 	        };
+	        if (_this12.props.pagination) {
+	          newState.currPage = _util2.default.getFirstPage(pageStartIndex);
+	        }
 	        if (search) newState.expanding = [];
 	        return newState;
 	      });
@@ -2048,75 +2074,81 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_adjustHeaderWidth',
 	    value: function _adjustHeaderWidth() {
-	      var header = this.refs.header.getHeaderColGrouop();
-	      var tbody = this.refs.body.refs.tbody;
-	      var bodyHeader = this.refs.body.getHeaderColGrouop();
-	      var firstRow = tbody.childNodes[0];
-	      var isScroll = tbody.parentNode.getBoundingClientRect().height > tbody.parentNode.parentNode.getBoundingClientRect().height;
-
-	      var scrollBarWidth = isScroll ? _util2.default.getScrollBarWidth() : 0;
-	      if (firstRow && this.store.getDataNum()) {
-	        if (isScroll || this.isVerticalScroll !== isScroll) {
-	          var cells = firstRow.childNodes;
-	          for (var i = 0; i < cells.length; i++) {
-	            var cell = cells[i];
-	            var computedStyle = window.getComputedStyle(cell);
-	            var width = parseFloat(computedStyle.width.replace('px', ''));
-	            if (this.isIE) {
-	              var paddingLeftWidth = parseFloat(computedStyle.paddingLeft.replace('px', ''));
-	              var paddingRightWidth = parseFloat(computedStyle.paddingRight.replace('px', ''));
-	              var borderRightWidth = parseFloat(computedStyle.borderRightWidth.replace('px', ''));
-	              var borderLeftWidth = parseFloat(computedStyle.borderLeftWidth.replace('px', ''));
-	              width = width + paddingLeftWidth + paddingRightWidth + borderRightWidth + borderLeftWidth;
-	            }
-	            var lastPadding = cells.length - 1 === i ? scrollBarWidth : 0;
-	            if (width <= 0) {
-	              width = 120;
-	              cell.width = width + lastPadding + 'px';
-	            }
-	            var result = width + lastPadding + 'px';
-	            header[i].style.width = result;
-	            header[i].style.minWidth = result;
-	            if (cells.length - 1 === i) {
-	              bodyHeader[i].style.width = width + 'px';
-	              bodyHeader[i].style.minWidth = width + 'px';
-	            } else {
-	              bodyHeader[i].style.width = result;
-	              bodyHeader[i].style.minWidth = result;
-	            }
-	          }
-	        }
-	      } else {
-	        for (var _i in bodyHeader) {
-	          if (bodyHeader.hasOwnProperty(_i)) {
-	            var child = bodyHeader[_i];
-	            if (child.style) {
-	              if (child.style.width) {
-	                header[_i].style.width = child.style.width;
-	              }
-	              if (child.style.minWidth) {
-	                header[_i].style.minWidth = child.style.minWidth;
-	              }
-	            }
-	          }
-	        }
-	      }
-	      this.isVerticalScroll = isScroll;
+	      return;
+	      // const header = this.refs.header.getHeaderColGrouop();
+	      // const tbody = this.refs.body.refs.tbody;
+	      // const bodyHeader = this.refs.body.getHeaderColGrouop();
+	      // const firstRow = tbody.childNodes[0];
+	      // const isScroll = tbody.parentNode.getBoundingClientRect().height >
+	      //   tbody.parentNode.parentNode.getBoundingClientRect().height;
+	      //
+	      // const scrollBarWidth = isScroll ? Util.getScrollBarWidth() : 0;
+	      // if (firstRow && this.store.getDataNum()) {
+	      //   if (isScroll || this.isVerticalScroll !== isScroll) {
+	      //     const cells = firstRow.childNodes;
+	      //     for (let i = 0; i < cells.length; i++) {
+	      //       const cell = cells[i];
+	      //       const computedStyle = window.getComputedStyle(cell);
+	      //       let width = parseFloat(computedStyle.width.replace('px', ''));
+	      //       if (this.isIE) {
+	      //         const paddingLeftWidth = parseFloat(computedStyle.paddingLeft.replace('px', ''));
+	      //         const paddingRightWidth = parseFloat(computedStyle.paddingRight.replace('px', ''));
+	      //         const borderRightWidth = parseFloat(computedStyle.borderRightWidth.replace('px', ''));
+	      //         const borderLeftWidth = parseFloat(computedStyle.borderLeftWidth.replace('px', ''));
+	      //         width = width + paddingLeftWidth + paddingRightWidth + borderRightWidth + borderLeftWidth;
+	      //       }
+	      //       const lastPadding = (cells.length - 1 === i ? scrollBarWidth : 0);
+	      //       if (width <= 0) {
+	      //         width = 120;
+	      //         cell.width = width + lastPadding + 'px';
+	      //       }
+	      //       const result = width + lastPadding + 'px';
+	      //       header[i].style.width = result;
+	      //       header[i].style.minWidth = result;
+	      //       if (cells.length - 1 === i) {
+	      //         bodyHeader[i].style.width = width + 'px';
+	      //         bodyHeader[i].style.minWidth = width + 'px';
+	      //       } else {
+	      //         bodyHeader[i].style.width = result;
+	      //         bodyHeader[i].style.minWidth = result;
+	      //       }
+	      //     }
+	      //   }
+	      // } else {
+	      //   for (const i in bodyHeader) {
+	      //     if (bodyHeader.hasOwnProperty(i)) {
+	      //       const child = bodyHeader[i];
+	      //       if (child.style) {
+	      //         if (child.style.width) {
+	      //           header[i].style.width = child.style.width;
+	      //         }
+	      //         if (child.style.minWidth) {
+	      //           header[i].style.minWidth = child.style.minWidth;
+	      //         }
+	      //       }
+	      //     }
+	      //   }
+	      // }
+	      // this.isVerticalScroll = isScroll;
 	    }
 	  }, {
 	    key: '_adjustHeight',
 	    value: function _adjustHeight() {
-	      var height = this.props.height;
-	      var maxHeight = this.props.maxHeight;
-
-	      if (typeof height === 'number' && !isNaN(height) || height.indexOf('%') === -1) {
-	        this.refs.body.refs.container.style.height = parseFloat(height, 10) - this.refs.header.refs.container.offsetHeight + 'px';
-	      }
-	      if (maxHeight) {
-	        maxHeight = typeof maxHeight === 'number' ? maxHeight : parseInt(maxHeight.replace('px', ''), 10);
-
-	        this.refs.body.refs.container.style.maxHeight = maxHeight - this.refs.header.refs.container.offsetHeight + 'px';
-	      }
+	      return;
+	      // const { height } = this.props;
+	      // let { maxHeight } = this.props;
+	      // if ((typeof height === 'number' && !isNaN(height)) || height.indexOf('%') === -1) {
+	      //   this.refs.body.refs.container.style.height =
+	      //     parseFloat(height, 10) - this.refs.header.refs.container.offsetHeight + 'px';
+	      // }
+	      // if (maxHeight) {
+	      //   maxHeight = typeof maxHeight === 'number' ?
+	      //     maxHeight :
+	      //     parseInt(maxHeight.replace('px', ''), 10);
+	      //
+	      //   this.refs.body.refs.container.style.maxHeight =
+	      //     maxHeight - this.refs.header.refs.container.offsetHeight + 'px';
+	      // }
 	    }
 	  }, {
 	    key: '_handleAfterAddingRow',
@@ -2316,6 +2348,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    noAutoBOM: _propTypes2.default.bool,
 	    maxTableHeight: _propTypes2.default.number,
 	    scrollRendering: _propTypes2.default.bool,
+	    scrollBuffer: _propTypes2.default.number,
 	    rowHeight: _propTypes2.default.number
 	  }),
 	  fetchInfo: _propTypes2.default.shape({
@@ -2486,6 +2519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    noAutoBOM: true,
 	    maxTableHeight: undefined,
 	    scrollRendering: false,
+	    scrollBuffer: 0,
 	    rowHeight: 37
 	  },
 	  fetchInfo: {
