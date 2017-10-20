@@ -143,10 +143,12 @@ class BootstrapTable extends Component {
       const buffer = this.props.options.scrollBuffer || 0;
       const startIndex = Math.max(Math.floor(top / this.state.rowHeight) - buffer, 0);
       const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + buffer, this.store.rows.length);
-      this.setState({
-        data: this.getDisplayData(startIndex, endIndex),
-        startIndex,
-        endIndex
+      window.requestAnimationFrame(()=>{
+        this.setState({
+          data: this.getDisplayData(startIndex, endIndex),
+          startIndex,
+          endIndex
+        });
       });
     }
   }
