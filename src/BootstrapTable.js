@@ -68,7 +68,7 @@ class BootstrapTable extends Component {
       endIndex: end
     };
   }
-l
+
   initTable(props) {
     // If columns changed, clean removed columns that had filters
     if (props.children !== this.props.children && this.filter) {
