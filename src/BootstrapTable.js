@@ -46,10 +46,13 @@ class BootstrapTable extends Component {
     this._adjustTable = this._adjustTable.bind(this);
     this._onScroll = this._onScroll.bind(this);
 
-    const ht = this.props.maxTableHeight;
-    const rowHeight = this.props.rowHeight || 37;
-    const size = this.store.rows.length;
-    const end = ht ? Math.min(Math.ceil(ht / rowHeight), size) : size;
+    let end;
+    const rowHeight = this.props.options.rowHeight || 37;
+    if (this.props.options.scrollRendering) {
+      const ht = this.props.options.maxTableHeight;
+      const size = this.store.rows.length;
+      end = ht ? Math.min(Math.ceil(ht / rowHeight), size) : size;
+    }
 
     this.state = {
       data: this.getTableData(0, end),
@@ -140,7 +143,7 @@ l
       const startIndex = Math.max(Math.floor(top / this.state.rowHeight) - 10, 0);
       const endIndex = Math.min(Math.ceil((top + height) / this.state.rowHeight) + 10, this.store.rows.length);
       this.setState({
-        data: this.getTableData(startIndex, endIndex),
+        data: this.getDisplayData(startIndex, endIndex),
         startIndex,
         endIndex
       });
@@ -148,9 +151,7 @@ l
   }
 
   getTableData(start, end) {
-    let result = [];
-    const { options, pagination } = this.props;
-    const { scrollRendering } = this.props.options;
+    const { options } = this.props;
     const sortName = options.defaultSortName || options.sortName;
     const sortOrder = options.defaultSortOrder || options.sortOrder;
     const searchText = options.defaultSearch;
@@ -166,6 +167,14 @@ l
       this.store.search(searchText);
     }
 
+    return this.getDisplayData(start, end);
+  }
+
+  getDisplayData(start, end) {
+    let result = [];
+    const { options, pagination } = this.props;
+    const { scrollRendering } = this.props.options;
+
     if (pagination) {
       let page;
       let sizePerPage;
@@ -178,7 +187,7 @@ l
       }
       result = this.store.page(page, sizePerPage).get();
     } else if (scrollRendering) {
-      result = this.store.slice(start || 0, end || 0).get();
+      result = this.store.slice(start || 0, end || this.store.data.length).get();
     } else {
       result = this.store.get();
     }
